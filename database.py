@@ -15,10 +15,18 @@ temporal scales, they are loaded as separate tables (`cloud_usage` and `gcp_bill
 rather than being merged into a single table.
 """
 
+import sys
 import os
 import sqlite3
 import random
 import pandas as pd
+
+# Verify required columns exist in each dataset
+def verify_columns(df, required_cols, dataset_name):
+    missing = set(required_cols) - set(df.columns)
+    if missing:
+        raise ValueError(f"{dataset_name} is missing required columns: {missing}")
+
 
 def main():
     db_path = "costlens.db"
@@ -47,6 +55,11 @@ def main():
         try:
             print("Reading GCP billing dataset...")
             df_gcp = pd.read_csv(gcp_billing_path, parse_dates=['usage_start_date', 'usage_end_date'])
+            # Verify required columns for each dataset
+            cloud_required = ['timestamp', 'cpu_usage', 'memory_usage', 'net_io', 'disk_io', 'cloud_provider', 'region', 'vm_type', 'vcpu', 'ram_gb', 'price_per_hour', 'target', 'latency_ms', 'throughput', 'cost', 'utilization']
+            gcp_required = ['resource_id', 'service_name', 'usage_quantity', 'usage_unit', 'region/zone', 'cpu_utilization_pct', 'memory_utilization_pct', 'network_inbound_data_bytes', 'network_outbound_data_bytes', 'usage_start_date', 'usage_end_date', 'cost_per_quantity_usd', 'unrounded_cost_usd', 'rounded_cost_usd', 'total_cost_(inr)']
+            verify_columns(df_cloud, cloud_required, 'Cloud usage dataset')
+            verify_columns(df_gcp, gcp_required, 'GCP billing dataset')
         except pd.errors.ParserError as e:
             raise ValueError(f"GCP billing CSV is malformed or corrupted: {e}")
         
