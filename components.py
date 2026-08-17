@@ -73,37 +73,125 @@ def export_button(df, filename):
         key=f"export_{filename}_{df.shape[0]}"
     )
 
-if __name__ == "__main__":
-    st.set_page_config(layout="wide", page_title="Component Testing")
-    st.title("🔧 CostLens Component Testing Sandbox")
-    st.write("Testing visual aesthetics and responsiveness of reusable widgets.")
+def anomaly_badge(count):
+    """
+    Renders a premium visual badge showing the number of flagged cost anomalies.
+    """
+    if count > 0:
+        badge_style = f"""
+        <div style="
+            display: inline-flex;
+            align-items: center;
+            background-color: #7F1D1D;
+            color: #F87171;
+            border: 1px solid #991B1B;
+            border-radius: 9999px;
+            padding: 0.35rem 0.85rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            margin: 0.5rem 0;
+        ">
+            <span style="margin-right: 0.35rem;">⚠️</span> {count} Cost Anomalies Flagged
+        </div>
+        """
+    else:
+        badge_style = """
+        <div style="
+            display: inline-flex;
+            align-items: center;
+            background-color: #064E3B;
+            color: #34D399;
+            border: 1px solid #065F46;
+            border-radius: 9999px;
+            padding: 0.35rem 0.85rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            margin: 0.5rem 0;
+        ">
+            <span style="margin-right: 0.35rem;">✅</span> No Cost Anomalies Flagged
+        </div>
+        """
+    st.markdown(badge_style, unsafe_allow_html=True)
+
+def trend_chart(historical_df, projection_df, r_squared):
+    """
+    Renders a continuous line chart combining historical spend and projections.
+    Includes an honest R^2 metric description as caption.
+    """
+    st.markdown("#### Cost Trends & Projections")
     
-    st.subheader("1. KPI Cards")
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        kpi_card("Total Cost (MTD)", "$12,450.80", "+12.4% vs last month")
-    with col2:
-        kpi_card("Active Instances", "42", "-3 instances")
-    with col3:
-        kpi_card("Storage Capacity", "1.2 TB", "0%")
+    # Standardize columns
+    hist = historical_df.copy()
+    proj = projection_df.copy()
+    
+    # Find column names dynamically to make it robust
+    h_date_col = next((c for c in hist.columns if 'date' in c.lower()), hist.columns[0])
+    h_cost_col = next((c for c in hist.columns if 'cost' in c.lower() or 'spend' in c.lower()), hist.columns[1])
+    
+    p_date_col = next((c for c in proj.columns if 'date' in c.lower()), proj.columns[0])
+    p_cost_col = next((c for c in proj.columns if 'cost' in c.lower() or 'spend' in c.lower()), proj.columns[1])
+    
+    hist_cleaned = hist[[h_date_col, h_cost_col]].copy()
+    hist_cleaned.columns = ['Date', 'Historical Cost ($)']
+    hist_cleaned['Date'] = pd.to_datetime(hist_cleaned['Date'])
+    
+    proj_cleaned = proj[[p_date_col, p_cost_col]].copy()
+    proj_cleaned.columns = ['Date', 'Projected Cost ($)']
+    proj_cleaned['Date'] = pd.to_datetime(proj_cleaned['Date'])
+    
+    # Seamless connection: add last historical point to projection
+    if not hist_cleaned.empty and not proj_cleaned.empty:
+        last_hist_row = hist_cleaned.sort_values('Date').iloc[-1]
+        conn_row = pd.DataFrame([{
+            'Date': last_hist_row['Date'],
+            'Projected Cost ($)': last_hist_row['Historical Cost ($)']
+        }])
+        proj_cleaned = pd.concat([conn_row, proj_cleaned], ignore_index=True)
+        
+    combined = pd.merge(hist_cleaned, proj_cleaned, on='Date', how='outer')
+    combined = combined.sort_values('Date').set_index('Date')
+    
+    st.line_chart(combined)
+    
+    # Honest display of R^2 coefficient
+    st.caption(
+        f"📈 **Trend Model**: Simple linear regression projection. "
+        f"**R² (Coefficient of Determination)** = `{r_squared:.4f}`. "
+        f"A value close to 1 implies strong linear trend, whereas close to 0 indicates high variance and low predictive accuracy."
+    )
+
+if __name__ == "__main__":
+    st.set_page_config(layout="wide", page_title="Component Testing Sandbox v2")
+    st.title("🔧 CostLens Component Testing Sandbox v2")
+    
+    st.subheader("1. Anomaly Badges")
+    col_b1, col_b2 = st.columns(2)
+    with col_b1:
+        st.write("Anomalies > 0:")
+        anomaly_badge(4)
+    with col_b2:
+        st.write("Anomalies = 0:")
+        anomaly_badge(0)
         
     st.write("---")
-    st.subheader("2. Visual Chart Widgets")
+    st.subheader("2. Historical + Projected Spend Chart")
     
-    # Generate dummy data
-    dates = pd.date_range(start="2026-08-01", periods=10)
-    dummy_df = pd.DataFrame({
-        "Date": dates.strftime("%Y-%m-%d"),
-        "Cost": [120, 150, 140, 180, 210, 190, 220, 250, 240, 270],
-        "Usage": [50, 55, 52, 60, 68, 62, 70, 75, 72, 80]
+    # Generate dummy historical data
+    h_dates = pd.date_range(start="2026-08-01", periods=15)
+    historical_data = pd.DataFrame({
+        "date": h_dates,
+        "daily_cost": [100, 105, 110, 108, 115, 120, 125, 122, 130, 135, 140, 138, 145, 150, 155]
     })
     
-    col_chart1, col_chart2 = st.columns(2)
-    with col_chart1:
-        line_chart(dummy_df, "Date", "Cost", "Daily Infrastructure Spend ($)")
-    with col_chart2:
-        bar_chart(dummy_df, "Date", "Usage", "Compute Usage (vCPU Hours)")
-        
-    st.write("---")
-    st.subheader("3. Data Exports")
-    export_button(dummy_df, "cost_components_dummy.csv")
+    # Generate dummy projection data
+    p_dates = pd.date_range(start="2026-08-16", periods=7)
+    projection_data = pd.DataFrame({
+        "date": p_dates,
+        "projected_cost": [158, 161, 164, 167, 170, 173, 176]
+    })
+    
+    trend_chart(historical_data, projection_data, r_squared=0.9654)
