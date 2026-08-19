@@ -110,7 +110,7 @@ def cost_by_team() -> pd.DataFrame:
 
 
 def usage_vs_price_decomposition() -> pd.DataFrame:
-    """Decompose cost changes into usage‑driven, price‑driven, both, or stable.
+    """Decompose cost changes into usage-driven, price-driven, both, or stable.
 
     For each GCP service the dataset is split at the median ``usage_start_date``
     into an early and a late half.  Average ``usage_quantity`` and
@@ -135,9 +135,9 @@ def usage_vs_price_decomposition() -> pd.DataFrame:
             if usage_sig and price_sig:
                 return "Usage + Price driven"
             if usage_sig:
-                return "Usage‑driven"
+                return "Usage-driven"
             if price_sig:
-                return "Price‑driven"
+                return "Price-driven"
             return "Stable"
 
         results = []
@@ -189,7 +189,7 @@ def target_cost_correlation() -> pd.DataFrame:
 
 
 def flag_anomalies(z_threshold: float = 2.0, window: int = 12) -> pd.DataFrame:
-    """Flag cost anomalies in ``cloud_usage`` using rolling z‑score.
+    """Flag cost anomalies in ``cloud_usage`` using rolling z-score.
 
     Adds a boolean column ``anomaly_flag``.  The function also returns the same
     DataFrame with the flag column for downstream KPI calculation.
