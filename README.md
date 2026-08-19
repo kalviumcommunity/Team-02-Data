@@ -1,143 +1,98 @@
-# ☁️ Cloud Infrastructure Cost Attribution
+# ☁️ CostLens AI
 
-## 📌 Problem Statement
+## 📌 Project Overview
+**CostLens AI** is a multi-dimensional cloud cost intelligence dashboard built as a course project for the **Semester 5 Software Product Engineering** course (**Team 02, Alliance University**). 
 
-Cloud platforms generate infrastructure billing, deployment history, and service usage metrics as separate datasets. Because these data sources are independent, finance teams often struggle to determine which engineering activities or deployments caused unexpected increases in cloud costs.
-
-This project aims to bridge that gap by correlating billing records, deployment events, and resource usage metrics to identify the root causes of infrastructure cost spikes.
-
----
-
-## 🎯 Objective
-
-Develop a data analytics dashboard that:
-
-- Detects unusual cloud infrastructure cost spikes.
-- Correlates billing data with deployment history.
-- Analyzes service usage metrics (CPU, memory, requests, etc.).
-- Identifies engineering activities that may have caused increased infrastructure costs.
-- Provides actionable insights through an interactive dashboard.
-
----
-
-## 🚀 Features
-
-- 📊 Cloud billing analysis
-- 📈 Cost spike detection
-- 🔄 Deployment history tracking
-- 📉 Resource usage monitoring
-- 🔍 Cost attribution analysis
-- 📋 Interactive Streamlit dashboard
-- 💾 SQLite database integration
-- 📑 Data preprocessing using Pandas & NumPy
+The platform addresses a major challenge faced by modern engineering and finance teams: **cost attribution**. While cloud platforms export raw infrastructure billing, deployment history, and service usage metrics as independent datasets, finance teams often struggle to attribute sudden cost spikes to specific engineering activities or code releases. CostLens AI correlates these datasets to identify the root causes of infrastructure spend changes.
 
 ---
 
 ## 🛠️ Tech Stack
+This project is built strictly using the following approved stack:
+* **Python** (Backend Logic & Data Ingestion)
+* **Pandas & NumPy** (Data Cleaning & Statistical Analysis)
+* **SQLite (SQL)** (Local Data Storage & Querying)
+* **Streamlit** (Interactive Dashboard Web Interface)
 
-| Technology | Purpose |
-|------------|---------|
-| Python | Backend & Data Processing |
-| Pandas | Data Cleaning & Analysis |
-| NumPy | Numerical Computations |
-| Streamlit | Interactive Dashboard |
-| SQLite | Database Storage |
+*No machine learning libraries (such as scikit-learn or TensorFlow) are used in this codebase to adhere to the Sprint 1 statistical scope.*
 
 ---
 
-## 📂 Project Structure
+## 📂 Database Architecture
+Data is ingested and stored locally in a SQLite database (`costlens.db`) consisting of **4 tables**:
 
+1. **`cloud_usage`**: Contains multi-cloud telemetry data (AWS, Azure, GCP) covering virtual machine specs, utilization percentages, IO rates, costs, response times, and automated scaling recommendations (`target`).
+2. **`gcp_billing`**: Houses raw Google Cloud Platform billing metrics, usage quantities, billing duration, and costs in USD and INR.
+3. **`team_ownership_gcp`** *(Synthetic)*: Maps GCP services to responsible engineering teams. Contains an `is_synthetic=True` transparency flag.
+4. **`team_ownership_cloud`** *(Synthetic)*: Maps multi-cloud provider and region combinations to responsible engineering teams. Contains an `is_synthetic=True` transparency flag.
+
+---
+
+## 💡 Important Disclosures
+
+> [!NOTE]
+> **Sprint 1 Statistical-Only Scope**  
+> All features in this release are powered by pure statistical methods (such as rolling standard deviation Z-Scores for anomaly detection, and linear regression fits for trend projection). No machine learning is active in Sprint 1, in strict alignment with Phase 1 of our Product Requirements Document (PRD). Machine learning forecasting models are scheduled for the Phase 2 upgrade plan.
+
+> [!IMPORTANT]
+> **Real vs. Synthetic Data Disclosure**  
+> Because real organizational team mapping data is not publicly available, the team allocation datasets (`team_ownership_gcp` and `team_ownership_cloud`) are **100% synthetic**. This synthetic nature is visually indicated wherever team-based costs are rendered.
+
+---
+
+## 🚀 Setup & Installation
+
+Follow these steps to run the application locally on your machine:
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/kalviumcommunity/Team-02-Data.git
+cd Team-02-Data
 ```
-Cloud-Infrastructure-Cost-Attribution/
-│
-├── data/
-│   ├── billing.csv
-│   ├── deployment_history.csv
-│   └── usage_metrics.csv
-│
-├── database/
-│   └── cloud_cost.db
-│
-├── app.py
-├── analysis.py
-├── database.py
-├── requirements.txt
-└── README.md
+
+### 2. Set Up a Virtual Environment & Install Dependencies
+Create a virtual environment and install the required, pinned packages:
+```bash
+# Create virtual environment
+python -m venv venv
+
+# Activate virtual environment (Windows PowerShell)
+.\venv\Scripts\Activate.ps1
+
+# Install requirements
+pip install -r requirements.txt
+```
+
+### 3. Initialize the SQLite Database
+Ingest the preprocessed CSV datasets and generate the synthetic team-ownership mappings:
+```bash
+python database.py
+```
+
+### 4. Run the Streamlit Dashboard
+Launch the web interface locally:
+```bash
+streamlit run Home.py
 ```
 
 ---
 
-## 📊 Dataset
+## 🖥️ UI Screenshots (Placeholders)
 
-The project uses three datasets:
+Below are the layout structures for the main views of the application:
 
-### 1. Infrastructure Billing
-Contains cloud service costs over time.
+### Home Screen
+*Visual entry point and multi-cloud summary metrics:*  
+![Home Screen Placeholder](screenshots/home.png)
 
-Example fields:
-- Date
-- Service
-- Region
-- Cost
+### Executive View
+*High-level spending trends, team-wise cost breakdown, and linear projections:*  
+![Executive View Placeholder](screenshots/executive.png)
 
-### 2. Deployment History
-Records engineering deployments and releases.
+### Engineering View
+*Resource utilization profiles, anomaly indicators, and price-vs-usage decomposition tables:*  
+![Engineering View Placeholder](screenshots/engineering.png)
 
-Example fields:
-- Deployment ID
-- Service
-- Version
-- Engineer
-- Timestamp
-
-### 3. Service Usage Metrics
-Contains infrastructure utilization data.
-
-Example fields:
-- Timestamp
-- CPU Usage
-- Memory Usage
-- Request Count
-- Service
-
----
-
-## ⚙️ Workflow
-
-1. Load cloud billing data.
-2. Load deployment history.
-3. Load service usage metrics.
-4. Clean and preprocess datasets.
-5. Store processed data in SQLite.
-6. Detect cost anomalies.
-7. Correlate cost spikes with deployments and usage metrics.
-8. Display insights through a Streamlit dashboard.
-
----
-
-## 📈 Expected Outcome
-
-The dashboard helps finance and engineering teams:
-
-- Understand why cloud costs increased.
-- Identify deployments linked to higher infrastructure spending.
-- Monitor resource utilization trends.
-- Make informed cost optimization decisions.
-
----
-
-## 🔮 Future Enhancements
-
-- AI-powered root cause analysis
-- Cost forecasting
-- Multi-cloud support (AWS, Azure, GCP)
-- Automated anomaly detection
-- Real-time monitoring integration
-
----
-
-## 👥 Team
-
-**Alliance University**  
-**Semester 5 - Sprint 1**  
-**Squad 69 - Team 02**
+### FinOps View
+*Rightsizing recommendations, idle resources tracking, and unit cost KPIs:*  
+![FinOps View Placeholder](screenshots/finops.png)
