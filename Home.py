@@ -1,5 +1,14 @@
 import streamlit as st
-from components import kpi_card
+import sys
+import os
+import pandas as pd
+
+# Ensure root folder is in python path for local imports
+sys.path.append(os.path.abspath(os.path.dirname(__file__)))
+
+import analytics
+import components
+import filters
 
 # Page configuration
 st.set_page_config(
@@ -40,34 +49,22 @@ div[data-testid="stSidebar"] {
 </style>
 """, unsafe_allow_html=True)
 
-# Sidebar Filter Skeletons
+# 1. Fetch GCP service options dynamically from database
+try:
+    gcp_services_df = analytics.cost_by_gcp_service()
+    gcp_services = sorted(gcp_services_df['service_name'].unique().tolist())
+except Exception:
+    gcp_services = []
+
+# 2. Render sidebar filters
 st.sidebar.markdown("<h2 style='color: #F8FAFC; font-weight: 700; margin-bottom: 1.5rem;'>Filter Scope</h2>", unsafe_allow_html=True)
 
-st.sidebar.markdown("**Select Cloud Provider**")
-cloud_providers = st.sidebar.multiselect(
-    "Cloud Providers",
-    options=["AWS", "Azure", "GCP"],
-    default=["AWS", "Azure", "GCP"],
-    label_visibility="collapsed"
-)
-
-st.sidebar.markdown("**Select Date Range**")
-date_range = st.sidebar.date_input(
-    "Date Range",
-    value=[],
-    label_visibility="collapsed"
-)
-
-st.sidebar.markdown("**Select GCP Services**")
-gcp_services = st.sidebar.multiselect(
-    "GCP Services",
-    options=["Compute Engine", "Cloud Storage", "BigQuery", "Cloud Run", "Google Kubernetes Engine"],
-    default=[],
-    label_visibility="collapsed"
-)
+selected_providers = filters.provider_filter()
+start_date, end_date = filters.date_range_filter()
+selected_service = filters.service_filter(gcp_services)
 
 st.sidebar.markdown("---")
-st.sidebar.info("💡 **Day 1 Skeleton**: Filters shown above are mock controls to demonstrate dashboard layout layout.")
+st.sidebar.caption("🔧 **Global Filters**: Filters adjusted here dynamically calculate the overview summary below.")
 
 # Main Dashboard Welcome
 st.markdown('<h1 class="main-title">CostLens AI</h1>', unsafe_allow_html=True)
@@ -83,15 +80,49 @@ By correlating cloud infrastructure usage (CPU, memory, net IO) and deployment h
 this dashboard exposes the true drivers behind cloud infrastructure cost changes.
 """)
 
-# High-Level Metrics Row (Dummy Data)
-st.write("### 📊 Enterprise Summary (Dummy Data)")
+# 3. Load & Calculate Real Summary Metrics
+try:
+    df_cloud = analytics.flag_anomalies()
+except Exception:
+    df_cloud = pd.DataFrame()
+
+# Apply filters
+if not df_cloud.empty:
+    df_cloud['timestamp'] = pd.to_datetime(df_cloud['timestamp'])
+    df_cloud = df_cloud[df_cloud['cloud_provider'].isin(selected_providers)]
+    if start_date and end_date:
+        start_dt = pd.to_datetime(start_date)
+        end_dt = pd.to_datetime(end_date) + pd.Timedelta(days=1) - pd.Timedelta(seconds=1)
+        df_cloud = df_cloud[(df_cloud['timestamp'] >= start_dt) & (df_cloud['timestamp'] <= end_dt)]
+
+# Calculate values
+if not df_cloud.empty:
+    total_spend = df_cloud['cost'].sum()
+    anomaly_count = int(df_cloud['anomaly_flag'].sum())
+else:
+    total_spend = 0.0
+    anomaly_count = 0
+
+# Calculate Savings Potential
+savings_potential = 0.0
+if "GCP" in selected_providers:
+    try:
+        opt_df = analytics.optimisation_candidates()
+        if selected_service != "All Services":
+            opt_df = opt_df[opt_df['service_name'] == selected_service]
+        savings_potential = float(opt_df['total_cost_usd'].sum())
+    except Exception:
+        pass
+
+# Display Real Metrics
+st.write("### 📊 Enterprise Summary")
 col1, col2, col3 = st.columns(3)
 with col1:
-    kpi_card("Month-to-Date Spend", "$45,210.89", "+4.2% vs Last Month")
+    components.kpi_card("Aggregated Multi-Cloud Spend", f"${total_spend:,.2f}", "Calculated from active filter scope")
 with col2:
-    kpi_card("Active Anomalies", "3 Detected", "+1 Spike Today")
+    components.anomaly_badge(anomaly_count)
 with col3:
-    kpi_card("Savings Potential", "$8,450.00 / mo", "12 Active Recommendations")
+    components.kpi_card("Savings Potential", f"${savings_potential:,.2f}", "Under-utilized GCP services")
 
 st.write("---")
 
