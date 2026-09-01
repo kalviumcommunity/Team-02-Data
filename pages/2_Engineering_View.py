@@ -25,7 +25,9 @@ html, body, [class*="st-"] {
 .main-title {
     font-size: 2.5rem;
     font-weight: 800;
-    color: #F8FAFC;
+    background: linear-gradient(90deg, #3B82F6 0%, #06B6D4 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
     margin-bottom: 0.2rem;
 }
 </style>
