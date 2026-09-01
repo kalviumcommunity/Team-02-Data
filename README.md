@@ -1,98 +1,158 @@
 # ☁️ CostLens AI
 
-## 📌 Project Overview
-**CostLens AI** is a multi-dimensional cloud cost intelligence dashboard built as a course project for the **Semester 5 Software Product Engineering** course (**Team 02, Alliance University**). 
+> **Alliance University · Semester 5 Software Product Engineering · Team 02 · Sprint 1**
 
-The platform addresses a major challenge faced by modern engineering and finance teams: **cost attribution**. While cloud platforms export raw infrastructure billing, deployment history, and service usage metrics as independent datasets, finance teams often struggle to attribute sudden cost spikes to specific engineering activities or code releases. CostLens AI correlates these datasets to identify the root causes of infrastructure spend changes.
+A multi-dimensional **cloud cost intelligence dashboard** that correlates infrastructure billing, resource telemetry, and service usage metrics to expose the *root cause* of unexpected cloud spend changes — empowering finance and engineering teams to act, not just observe.
+
+---
+
+## 🔍 Problem Statement
+
+Cloud platforms export infrastructure billing, deployment history, and service usage metrics as **independent, siloed datasets**. Finance teams see cost spikes but cannot attribute them to specific engineering activities or releases. CostLens AI bridges this gap.
 
 ---
 
 ## 🛠️ Tech Stack
-This project is built strictly using the following approved stack:
-* **Python** (Backend Logic & Data Ingestion)
-* **Pandas & NumPy** (Data Cleaning & Statistical Analysis)
-* **SQLite (SQL)** (Local Data Storage & Querying)
-* **Streamlit** (Interactive Dashboard Web Interface)
 
-*No machine learning libraries (such as scikit-learn or TensorFlow) are used in this codebase to adhere to the Sprint 1 statistical scope.*
+| Technology | Purpose |
+|---|---|
+| **Python 3.10+** | Backend data processing |
+| **Pandas & NumPy** | Statistical analysis (rolling z-scores, polynomial regression) |
+| **SQLite (sqlite3)** | Local 4-table relational database |
+| **Streamlit** | Interactive multi-page dashboard |
 
----
-
-## 📂 Database Architecture
-Data is ingested and stored locally in a SQLite database (`costlens.db`) consisting of **4 tables**:
-
-1. **`cloud_usage`**: Contains multi-cloud telemetry data (AWS, Azure, GCP) covering virtual machine specs, utilization percentages, IO rates, costs, response times, and automated scaling recommendations (`target`).
-2. **`gcp_billing`**: Houses raw Google Cloud Platform billing metrics, usage quantities, billing duration, and costs in USD and INR.
-3. **`team_ownership_gcp`** *(Synthetic)*: Maps GCP services to responsible engineering teams. Contains an `is_synthetic=True` transparency flag.
-4. **`team_ownership_cloud`** *(Synthetic)*: Maps multi-cloud provider and region combinations to responsible engineering teams. Contains an `is_synthetic=True` transparency flag.
+> ⚠️ **No machine-learning libraries** are used. All anomaly detection and trend projections are powered by pure statistical methods — this is a deliberate Sprint 1 scope decision. Phase 2 will introduce ML forecasting.
 
 ---
 
-## 💡 Important Disclosures
+## 📂 Database Architecture (`costlens.db`)
 
-> [!NOTE]
-> **Sprint 1 Statistical-Only Scope**  
-> All features in this release are powered by pure statistical methods (such as rolling standard deviation Z-Scores for anomaly detection, and linear regression fits for trend projection). No machine learning is active in Sprint 1, in strict alignment with Phase 1 of our Product Requirements Document (PRD). Machine learning forecasting models are scheduled for the Phase 2 upgrade plan.
+The local SQLite database contains **4 tables**:
 
-> [!IMPORTANT]
-> **Real vs. Synthetic Data Disclosure**  
-> Because real organizational team mapping data is not publicly available, the team allocation datasets (`team_ownership_gcp` and `team_ownership_cloud`) are **100% synthetic**. This synthetic nature is visually indicated wherever team-based costs are rendered.
+| Table | Source | Description |
+|---|---|---|
+| `cloud_usage` | Real dataset | Multi-cloud telemetry: CPU, memory, net IO, cost, latency, scaling target (AWS/Azure/GCP, ~1,000 rows, 5-min intervals) |
+| `gcp_billing` | Real dataset | GCP billing exports: service, usage quantity, CPU/memory utilisation %, costs in USD & INR (~1,000 rows) |
+| `team_ownership_gcp` | **Synthetic** ⚠️ | Maps GCP services → engineering team names. `is_synthetic = True` |
+| `team_ownership_cloud` | **Synthetic** ⚠️ | Maps cloud provider + region combos → engineering teams. `is_synthetic = True` |
+
+> **Why separate tables?** The two real datasets share no reliable join key — they cover different cloud scopes and non-overlapping time windows — so they remain independent and are never force-merged.
 
 ---
 
-## 🚀 Setup & Installation
+## ⚠️ Data Disclosure
 
-Follow these steps to run the application locally on your machine:
+- **Real data**: `cloud_usage` and `gcp_billing` tables use real, publicly available cloud datasets.
+- **Synthetic data**: `team_ownership_gcp` and `team_ownership_cloud` contain randomly generated team-to-service assignments. No real organizational ownership data exists publicly. Every dashboard view that shows team-attributed cost includes an explicit synthetic disclaimer.
 
-### 1. Clone the Repository
+---
+
+## 🚀 Local Setup & Run
+
+### Step 1 — Clone the repository
 ```bash
 git clone https://github.com/kalviumcommunity/Team-02-Data.git
 cd Team-02-Data
 ```
 
-### 2. Set Up a Virtual Environment & Install Dependencies
-Create a virtual environment and install the required, pinned packages:
+### Step 2 — Create and activate a virtual environment
 ```bash
-# Create virtual environment
 python -m venv venv
 
-# Activate virtual environment (Windows PowerShell)
+# Windows (PowerShell)
 .\venv\Scripts\Activate.ps1
 
-# Install requirements
+# macOS / Linux
+source venv/bin/activate
+```
+
+### Step 3 — Install dependencies
+```bash
 pip install -r requirements.txt
 ```
 
-### 3. Initialize the SQLite Database
-Ingest the preprocessed CSV datasets and generate the synthetic team-ownership mappings:
+### Step 4 — Initialise the database
 ```bash
 python database.py
 ```
+This ingests the two CSV files from `Data/processed/` and generates the synthetic team-ownership tables.
 
-### 4. Run the Streamlit Dashboard
-Launch the web interface locally:
+### Step 5 — Launch the dashboard
 ```bash
 streamlit run Home.py
 ```
 
+Open [http://localhost:8501](http://localhost:8501) in your browser.
+
 ---
 
-## 🖥️ UI Screenshots (Placeholders)
+## ☁️ Deployment Guide (Streamlit Community Cloud — Free)
 
-Below are the layout structures for the main views of the application:
+### Prerequisites
+- A GitHub account with this repo pushed (public or private).
+- A [Streamlit Community Cloud](https://share.streamlit.io) account (free, sign in with GitHub).
 
-### Home Screen
-*Visual entry point and multi-cloud summary metrics:*  
-![Home Screen Placeholder](screenshots/home.png)
+### Steps
 
-### Executive View
-*High-level spending trends, team-wise cost breakdown, and linear projections:*  
-![Executive View Placeholder](screenshots/executive.png)
+1. **Commit `costlens.db` to the repo** (or add a `@st.cache_data` startup call that runs `database.py` automatically on first boot — already implemented in the app).
 
-### Engineering View
-*Resource utilization profiles, anomaly indicators, and price-vs-usage decomposition tables:*  
-![Engineering View Placeholder](screenshots/engineering.png)
+2. **Go to** [share.streamlit.io](https://share.streamlit.io) → **New app**.
 
-### FinOps View
-*Rightsizing recommendations, idle resources tracking, and unit cost KPIs:*  
-![FinOps View Placeholder](screenshots/finops.png)
+3. Fill in:
+   | Field | Value |
+   |---|---|
+   | Repository | `kalviumcommunity/Team-02-Data` |
+   | Branch | `main` |
+   | Main file path | `Home.py` |
+
+4. Click **Deploy**. Streamlit Cloud reads `requirements.txt` automatically and installs dependencies.
+
+5. The app will be live at a URL like:
+   `https://team-02-data.streamlit.app`
+
+### Notes for Cloud Deployment
+- `costlens.db` is included in the repo (SQLite files are small and committing them is acceptable for a course project).
+- If you prefer not to commit the DB, add this block at the top of `Home.py`:
+  ```python
+  if not os.path.exists("costlens.db"):
+      import database; database.main()
+  ```
+  This is already in `smoke_test.py` and can be copied over.
+
+---
+
+## 📐 Architecture Overview
+
+```
+Home.py                  ← Entry point (global filters, KPI summary, nav guide)
+├── components.py        ← Shared reusable UI widgets (kpi_card, charts, badge)
+├── filters.py           ← Sidebar input helpers (date, provider, service)
+├── analytics.py         ← Pure SQL + Pandas analytics engine (8 functions)
+├── database.py          ← SQLite ingestion + synthetic team mapping generator
+└── pages/
+    ├── 1_Executive_View.py   ← Trend, anomaly count, 7-day projection
+    ├── 2_Engineering_View.py ← CPU KPIs, spend breakdown, decomposition table
+    └── 3_FinOps_View.py      ← Rightsizing, team attribution, optimisation
+```
+
+---
+
+## 📸 Screenshots
+
+*(Add after final run — place screenshots in `screenshots/` folder)*
+
+| View | Preview |
+|---|---|
+| Home | ![Home](screenshots/home.png) |
+| Executive View | ![Executive](screenshots/executive.png) |
+| Engineering View | ![Engineering](screenshots/engineering.png) |
+| FinOps View | ![FinOps](screenshots/finops.png) |
+
+---
+
+## 👥 Team
+
+| Member | Owned Files |
+|---|---|
+| **Raghav** | `Home.py`, `components.py`, `filters.py`, `pages/2_Engineering_View.py`, `requirements.txt`, `README.md` |
+| **Nahda** | `database.py`, `analytics.py`, `pages/1_Executive_View.py`, `pages/3_FinOps_View.py` |
