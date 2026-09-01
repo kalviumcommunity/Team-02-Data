@@ -38,7 +38,7 @@ html, body, [class*="st-"] {
 """, unsafe_allow_html=True)
 
 # Main Title & Subtitle
-st.markdown('<h1 class="main-title">💼 Executive View</h1>', unsafe_allow_html=True)
+st.markdown('<h1 class="main-title">Executive View</h1>', unsafe_allow_html=True)
 st.markdown('<div class="subtitle">High-Level Financial Performance, Anomalies, & Spend Projections</div>', unsafe_allow_html=True)
 st.write("---")
 
@@ -96,4 +96,4 @@ with col_chart2:
     trend_chart(df_daily_trend.rename(columns={'daily_cost': 'cost'}), df_projection, r_squared)
     # plain-English warning message if R^2 < 0.5
     if r_squared < 0.5:
-        st.warning("⚠️ **Note**: Cost doesn't follow a strong linear trend in this data (R² is low). Use this projection with caution.")
+        st.warning("**Note**: Cost doesn't follow a strong linear trend in this data (R² is low). Use this projection with caution.")

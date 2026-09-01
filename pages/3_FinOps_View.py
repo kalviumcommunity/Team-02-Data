@@ -38,13 +38,13 @@ html, body, [class*="st-"] {
 """, unsafe_allow_html=True)
 
 # Main Title & Subtitle
-st.markdown('<h1 class="main-title">💸 FinOps View</h1>', unsafe_allow_html=True)
+st.markdown('<h1 class="main-title">FinOps View</h1>', unsafe_allow_html=True)
 st.markdown('<div class="subtitle">Cost Optimization Recommendations, Idle Resource Detection, & Team Financial Governance</div>', unsafe_allow_html=True)
 st.write("---")
 
 # Prominent Disclaimer Callout
 st.warning(
-    "⚠️ **Disclaimer**: Team assignments are illustrative — no public dataset provides real engineering ownership data. "
+    "**Disclaimer**: Team assignments are illustrative — no public dataset provides real engineering ownership data. "
     "Costs shown are real; team labels are synthetic."
 )
 
@@ -85,7 +85,7 @@ st.write("---")
 col_team1, col_team2 = st.columns(2)
 
 with col_team1:
-    st.subheader("👥 Cost Attributed by Team")
+    st.subheader("Cost Attributed by Team")
     # Display team cost ranked table
     if not df_team_cost.empty:
         # Format team_total_cost_usd columns for display
@@ -107,7 +107,7 @@ with col_team2:
 st.write("---")
 
 # UI Row 3: Optimisation Candidates
-st.subheader("💡 Under-Utilized GCP Services (CPU Utilization < 50%)")
+st.subheader("Under-Utilized GCP Services (CPU Utilization < 50%)")
 st.write("The services listed below run at sub-50% CPU capacity on average, suggesting right-sizing opportunities.")
 
 if not df_opt_candidates.empty:
@@ -121,4 +121,4 @@ if not df_opt_candidates.empty:
     # Export Button
     export_button(df_opt_candidates, "optimization_candidates.csv")
 else:
-    st.success("🎉 No GCP services currently fall under the 50% CPU utilization threshold!")
+    st.success("No GCP services currently fall under the 50% CPU utilization threshold!")
