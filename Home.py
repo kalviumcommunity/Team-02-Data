@@ -4,7 +4,7 @@ from components import kpi_card
 # Page configuration
 st.set_page_config(
     page_title="CostLens AI",
-    page_icon="💰",
+    page_icon="",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -67,7 +67,7 @@ gcp_services = st.sidebar.multiselect(
 )
 
 st.sidebar.markdown("---")
-st.sidebar.info("💡 **Day 1 Skeleton**: Filters shown above are mock controls to demonstrate dashboard layout layout.")
+st.sidebar.info("Filters shown above are mock controls to demonstrate dashboard layout.")
 
 # Main Dashboard Welcome
 st.markdown('<h1 class="main-title">CostLens AI</h1>', unsafe_allow_html=True)
@@ -76,7 +76,7 @@ st.markdown('<div class="subtitle">Multi-Dimensional Cloud Cost Intelligence & R
 st.write("---")
 
 st.markdown("""
-### 🔍 Overview
+### Overview
 **CostLens AI** is designed to solve a critical issue in cloud cost management: the inability of finance teams 
 to attribute sudden cost spikes to specific engineering events (such as code releases or deployment scaling).
 By correlating cloud infrastructure usage (CPU, memory, net IO) and deployment history against GCP billing datasets, 
@@ -84,7 +84,7 @@ this dashboard exposes the true drivers behind cloud infrastructure cost changes
 """)
 
 # High-Level Metrics Row (Dummy Data)
-st.write("### 📊 Enterprise Summary (Dummy Data)")
+st.write("### Enterprise Summary")
 col1, col2, col3 = st.columns(3)
 with col1:
     kpi_card("Month-to-Date Spend", "$45,210.89", "+4.2% vs Last Month")
@@ -97,7 +97,7 @@ st.write("---")
 
 # Quick Navigation Section
 st.markdown("""
-### 🚀 Navigation Guide
+### Navigation Guide
 Use the sidebar options to explore specific dashboard views:
 - **Executive View**: High-level spending trends, team-wise cost distribution, and cost projection forecasting.
 - **Engineering View**: Resource utilization profiles, deployment metrics correlation, and price-vs-usage attribution.

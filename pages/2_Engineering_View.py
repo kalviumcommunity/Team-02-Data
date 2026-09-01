@@ -47,10 +47,10 @@ start_date, end_date = filters.date_range_filter()
 selected_service = filters.service_filter(gcp_services)
 
 st.sidebar.markdown("---")
-st.sidebar.caption("🔧 **Engineering Filters**: These inputs filter the multi-cloud and GCP service metrics in real-time.")
+st.sidebar.caption("**Engineering Filters**: These inputs filter the multi-cloud and GCP service metrics in real-time.")
 
 # Main content
-st.markdown('<h1 class="main-title">🛠️ Engineering View</h1>', unsafe_allow_html=True)
+st.markdown('<h1 class="main-title">Engineering View</h1>', unsafe_allow_html=True)
 st.markdown("<p style='color: #94A3B8; margin-bottom: 2rem;'>Resource Utilization Profiles, Deployment History, and Price-vs-Usage Root Cause Analysis</p>", unsafe_allow_html=True)
 st.write("---")
 
@@ -74,7 +74,7 @@ if not df_cloud.empty:
         df_cloud = df_cloud[(df_cloud['timestamp'] >= start_dt) & (df_cloud['timestamp'] <= end_dt)]
 
 # 4. KPI Cards Row
-st.subheader("⚙️ System Performance KPIs")
+st.subheader("System Performance KPIs")
 if not df_cloud.empty:
     # Derive KPIs
     avg_cpu = df_cloud['cpu_usage'].mean() if 'cpu_usage' in df_cloud.columns else 0.0
@@ -96,7 +96,7 @@ else:
 st.write("---")
 
 # 5. Visual Cost Charts Row
-st.subheader("📊 Spend Breakdown")
+st.subheader("Spend Breakdown")
 chart_col1, chart_col2 = st.columns(2)
 
 with chart_col1:
@@ -127,7 +127,7 @@ with chart_col2:
 st.write("---")
 
 # 6. Usage vs Price Decomposition
-st.subheader("🔄 Cost Variance Decomposition")
+st.subheader("Cost Variance Decomposition")
 st.write("Analyzes price changes vs consumption shifts to identify why a service's total cost changed.")
 
 try:
@@ -173,7 +173,7 @@ except Exception as e:
 st.write("---")
 
 # 7. Target Cost Correlation
-st.subheader("🎯 Cost vs Target Action Correlation")
+st.subheader("Cost vs Target Action Correlation")
 st.write("Correlates telemetry metrics with scaling recommendations to gauge financial impact of automated actions.")
 
 try:
@@ -184,7 +184,7 @@ try:
         corr_disp['avg_cost'] = corr_disp['avg_cost'].map('${:,.2f}'.format)
         
         st.dataframe(corr_disp, use_container_width=True)
-        st.caption("⚠️ **Disclaimer**: The cost correlation above is derived from telemetry proxy signals and resource cost allocations. It does not represent direct billing API logs of deployment-triggered changes.")
+        st.caption("**Disclaimer**: The cost correlation above is derived from telemetry proxy signals and resource cost allocations. It does not represent direct billing API logs of deployment-triggered changes.")
         
         # Export Button
         components.export_button(corr_df, "target_cost_correlation.csv")
